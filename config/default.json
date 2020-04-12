@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://arefir:9TyKtv8B5LFW@devconnector-jzk8f.mongodb.net/devconnectql?retryWrites=true&w=majority",
+  "jwtSecret": "rustyegg"
+}
