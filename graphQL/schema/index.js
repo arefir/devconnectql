@@ -1,6 +1,11 @@
 const { buildSchema } = require("graphql");
 
 module.exports = buildSchema(`
+
+    type Message {
+        message: String
+    }
+
     type User {
         _id: ID!
         name: String!
@@ -22,6 +27,7 @@ module.exports = buildSchema(`
         githubusername: String
         social : Social
         experience: [Experience]
+        education: [Education]
         date: String
     }
 
@@ -40,6 +46,16 @@ module.exports = buildSchema(`
         from: String
         to: String
         current: Boolean
+        description: String
+    }
+
+    type Education {
+        school: String!
+        degree: String!
+        fieldofstudy: String!
+        from: String!
+        to: String
+        graduated: Boolean
         description: String
     }
 
@@ -83,17 +99,32 @@ module.exports = buildSchema(`
         description: String
     }
 
+    input inputEd {
+        school: String!
+        degree: String!
+        fieldofstudy: String!
+        from: String!
+        to: String
+        graduated: Boolean
+        description: String
+    }
+
     type RootQuery {
         users: [User!]!
-        profiles: [Profile!]!
         login(email: String!, password: String!): AuthLogin!
+        profiles: [Profile!]!
+        findProfile(id: String!): Profile!
         me: Profile!
     }
 
     type RootMutation {
-        createUser(userinput: inputUser): User!
-        createProfile(profileinput: inputProfile): Profile!
-        addExperience(expinput: inputExp): Profile!
+        createUser(user_input: inputUser): User!
+        deleteUser: Message
+        createProfile(profile_input: inputProfile): Profile!
+        addExperience(exp_input: inputExp): Profile!
+        deleteExperience(exp_id: String!): Profile!
+        addEducation(ed_input: inputEd): Profile!
+        deleteEducation(ed_id: String!): Profile!
     }
 
     schema {

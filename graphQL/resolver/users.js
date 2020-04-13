@@ -8,7 +8,7 @@ const usersResolver = {
   createUser: async (args) => {
     try {
       // see if user exists
-      const { name, email, password } = args.userinput;
+      const { name, email, password } = args.user_input;
 
       let user = await User.findOne({ email });
 
@@ -37,6 +37,25 @@ const usersResolver = {
 
       user.password = null;
       return user;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  },
+
+  //Delete User (With Profile, Posts)
+  deleteUser: async (args, req) => {
+    try {
+      if (!req.isAuth) throw new Error("Not Authenticated");
+
+      await Profile.findOneAndRemove({ user: req.user.id });
+      await User.findOneAndRemove({ _id: req.user.id });
+
+      const msg = {
+        message: "User successfully deleted",
+      };
+
+      return msg;
     } catch (err) {
       console.error(err.message);
       throw err;

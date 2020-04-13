@@ -2,7 +2,7 @@ const User = require("../../models/Users");
 const Profile = require("../../models/Profile");
 
 const profileResolver = {
-  //Get Profiles
+  //Get All Profiles
   profiles: async (args) => {
     try {
       const profiles = await Profile.find().populate("user", [
@@ -22,11 +22,28 @@ const profileResolver = {
     }
   },
 
+  findProfile: async (args) => {
+    try {
+      const profile = await Profile.findOne({
+        user: args.id,
+      }).populate("user", ["name", "avatar"]);
+
+      if (!profile) throw new Error("Profile not found");
+      return profile;
+    } catch (err) {
+      console.error(err.message);
+      if (err.kind == "ObjectId") {
+        throw err("Profile not found");
+      }
+      throw err;
+    }
+  },
+
   //Create/Update a Profile
   createProfile: async (args, req) => {
     if (!req.isAuth) throw new Error("Not Authenticated");
 
-    if (!args.profileinput.social) args.profileinput.social = {};
+    if (!args.profile_input.social) args.profile_input.social = {};
 
     const {
       company,
@@ -37,7 +54,7 @@ const profileResolver = {
       status,
       githubusername,
       social: { youtube, twitter, instagram, linkedin, facebook },
-    } = args.profileinput;
+    } = args.profile_input;
 
     const profileFields = {};
     profileFields.user = req.user.id;
@@ -127,7 +144,7 @@ const profileResolver = {
       to,
       current,
       description,
-    } = args.expinput;
+    } = args.exp_input;
 
     const newExp = {
       title,
@@ -155,6 +172,99 @@ const profileResolver = {
 
       return profile;
     } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  },
+
+  //Delete Experience
+  deleteExperience: async (args, req) => {
+    try {
+      if (!req.isAuth) throw new Error("Not Authenticated");
+
+      const profile = await Profile.findOne({
+        user: req.user.id,
+      }).populate("user", ["name", "avatar"]);
+
+      const removeIndex = profile.experience
+        .map((item) => item.id)
+        .indexOf(args.exp_id);
+
+      profile.experience.splice(removeIndex, 1);
+
+      await profile.save();
+
+      return profile;
+    } catch (error) {
+      console.error(err.message);
+      throw err;
+    }
+  },
+
+  //Add Education to Profile
+  addEducation: async (args, req) => {
+    if (!req.isAuth) throw new Error("Not Authenticated");
+
+    const {
+      school,
+      degree,
+      fieldofstudy,
+      from,
+      to,
+      graduated,
+      description,
+    } = args.ed_input;
+
+    const newEd = {
+      school,
+      degree,
+      fieldofstudy,
+      from,
+      to,
+      graduated,
+      description,
+    };
+
+    try {
+      let profile = await Profile.findOne({
+        user: req.user.id,
+      }).populate("user", ["name", "avatar"]);
+
+      profile.education.unshift(newEd);
+
+      await profile.save();
+
+      profile = {
+        ...profile._doc,
+        date: new Date(profile._doc.date).toISOString(),
+      };
+
+      return profile;
+    } catch (err) {
+      console.error(err.message);
+      throw err;
+    }
+  },
+
+  //Delete Education
+  deleteEducation: async (args, req) => {
+    try {
+      if (!req.isAuth) throw new Error("Not Authenticated");
+
+      const profile = await Profile.findOne({
+        user: req.user.id,
+      }).populate("user", ["name", "avatar"]);
+
+      const removeIndex = profile.education
+        .map((item) => item.id)
+        .indexOf(args.ed_id);
+
+      profile.education.splice(removeIndex, 1);
+
+      await profile.save();
+
+      return profile;
+    } catch (error) {
       console.error(err.message);
       throw err;
     }
